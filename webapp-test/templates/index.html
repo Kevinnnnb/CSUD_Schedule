@@ -1,0 +1,28 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Upload and OCR</title>
+</head>
+<body>
+    <h1>Upload and OCR</h1>
+    <form method="POST" action="/upload" enctype="multipart/form-data">
+        <input type="file" name="file">
+        <input type="submit" value="Upload and OCR">
+    </form>
+    <br>
+    <h2>OCR Result:</h2>
+    <p id="ocr-result"></p>
+    <script>
+        const ocrResult = document.getElementById('ocr-result');
+
+        window.onload = function() {
+            const urlParams = new URLSearchParams(window.location.search);
+            const ocrResultParam = urlParams.get('ocr_result');
+
+            if (ocrResultParam) {
+                ocrResult.innerHTML = ocrResultParam;
+            }
+        }
+    </script>
+</body>
+</html>

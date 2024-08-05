@@ -8,6 +8,5 @@ def ocr_image(image_path):
     text = pytesseract.image_to_string(img)
     print(text)
 
-# Example usage
-image_path = '' #Replace with your image file path
+image_path = '/Users/kevin/Desktop/3GY2.jpeg' #Replace with your image file path
 ocr_image(image_path)
