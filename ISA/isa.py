@@ -17,6 +17,7 @@ driver = webdriver.Safari()
 print('\nExecuting script. Please wait\n')
 time.sleep(2)
 print('Logging into IS-Academia ...\n')
+print('!!! AJOUTER LE TRUC POUR GERRER LES COOKIES MAIS DU COUP FAUT AUSSI AJOUTER LA POSSIBILITE DE GERRER LA CONNEXION EN FONCTION DES COOKIES SINON CA VEUT PAS JOEUR !!!\n')
 
 def save_to_local_file(content, file_path):
     """
