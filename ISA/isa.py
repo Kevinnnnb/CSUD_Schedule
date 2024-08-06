@@ -9,6 +9,7 @@ from bs4 import BeautifulSoup
 username = 'kevin.bourquenoud@studentfr.ch'
 password = 'UC9z37h8mn'
 
+# Eventuellement, faire en sorte d'utiliser FireFox pour une plus grande compatibilité
 driver = webdriver.Safari()
 
 print('\nExecuting script. Please wait while we log you in...\n')
