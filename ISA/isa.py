@@ -4,6 +4,8 @@ from selenium.webdriver.common.keys import Keys
 import time
 import os
 from bs4 import BeautifulSoup
+import threading
+import sys
 
 # Eventuellement, demander à l'utilisateur de saisir son mail et mot de passe
 username = 'kevin.bourquenoud@studentfr.ch'
@@ -12,7 +14,7 @@ password = 'UC9z37h8mn'
 # Eventuellement, faire en sorte d'utiliser FireFox pour une plus grande compatibilité
 driver = webdriver.Safari()
 
-print('\nExecuting script. Please wait while we log you in...\n')
+print('\nExecuting script. Please wait while we log you in ...\n')
 
 def save_to_local_file(content, file_path):
     """
@@ -35,6 +37,7 @@ def extract_data_from_html(file_path):
     soup = BeautifulSoup(html_content, 'html.parser')
 
     extracted_data = {
+        'date': '',
         'periode': '',
         'room': '',
         'matiere': '',
@@ -61,11 +64,37 @@ def extract_data_from_html(file_path):
                 extracted_data['matiere'] = data_value
             elif 'enseignant' in title_text.lower():
                 extracted_data['enseignant'] = data_value
+            elif 'date' in title_text.lower():
+                extracted_data['date'] = data_value
 
         return extracted_data
     else:
         print("No div with id 'collapsible11' found.")
         return None
+
+def input_with_timeout(prompt, timeout):
+    """
+    Prompt user input with a timeout.
+    
+    Parameters:
+    prompt (str): The prompt message to display.
+    timeout (int): The time in seconds to wait for input.
+    
+    Returns:
+    str: The user input if provided within the timeout period, otherwise None.
+    """
+    def ask_input():
+        nonlocal user_input
+        user_input = input(prompt)
+    
+    user_input = None
+    input_thread = threading.Thread(target=ask_input)
+    input_thread.start()
+    input_thread.join(timeout)
+    
+    if input_thread.is_alive():
+        return None
+    return user_input
 
 try:
     url = "https://isa.fr.ch"
@@ -83,7 +112,9 @@ try:
     image_element.click()
     time.sleep(5)
     
-    verification_code = input("Enter the SMS verification code you received: ")
+    verification_code = input_with_timeout("Enter the SMS verification code you received: ", 45)
+    if verification_code is None:
+        raise TimeoutError("No input received within the timeout period.")
     
     driver.find_element(By.ID, "idTxtBx_SAOTCC_OTC").send_keys(verification_code) 
     driver.find_element(By.ID, "idSubmit_SAOTCC_Continue").send_keys(Keys.RETURN)
@@ -107,18 +138,32 @@ try:
     extracted_data = extract_data_from_html(file_path)
 
     if extracted_data:
+        date = extracted_data.get('date')
         periode = extracted_data.get('periode')
         room = extracted_data.get('room')
         matiere = extracted_data.get('matiere')
         enseignant = extracted_data.get('enseignant')
 
         print('---------------------------------------------------\n')
-        print(f'Data - prochain cours:\n\nPériode: {periode}\nSalle: {room}\nMatière: {matiere}\nEnseignant: {enseignant}\n')
+        print(f'Data - prochain cours:\n\nDate: {date}\nPériode: {periode}\nSalle: {room}\nMatière: {matiere}\nEnseignant: {enseignant}\n')
         print('---------------------------------------------------\n')
+
+except TimeoutError as te:
+    print('\n\n---------------------------------------------------')
+    print(f'\nSorry, something bad happened. Please check your Login informations and try again ...\n')
+    erreur = True
+    
+
+except Exception as e:
+    print('\n\n---------------------------------------------------')
+    print(f'\nSorry, something bad happened. Please try again later ...\n')
+    
+    
 
 finally:
     driver.quit()
-    if xml_content is not None:
-        print('\nDone Successfully !\n')
+    if 'xml_content' in locals() and xml_content is not None:
+        print('Done Successfully !\n')
     else:
-        print('Something bad happened ...\n')
+        if erreur is not True:
+            print('Something bad happened ...\n')
