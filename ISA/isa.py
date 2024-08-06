@@ -31,11 +31,11 @@ try:
     
     driver.find_element(By.ID, "idTxtBx_SAOTCC_OTC").send_keys(verification_code) 
     driver.find_element(By.ID, "idSubmit_SAOTCC_Continue").send_keys(Keys.RETURN)
-    time.sleep(20) 
+    time.sleep(5) 
     driver.find_element(By.ID, "idSIButton9").send_keys(Keys.RETURN)
     time.sleep(5)
 
-    print('ACCESS GRANTED !\n')
+    print('\nACCESS GRANTED !\n')
 
 
     driver.switch_to.window(driver.window_handles[-1])
@@ -56,3 +56,9 @@ finally:
         print('Done Successfully !\n')
     else:
         print('Something bad happend ...\n')
+
+
+'''
+Penser à ajouter le code pour chocher le fait de rester connecté pour voir si du coup j'arrive à ne pas redemander le code de verification 
+(probleme si je fais ça c'est que faudra detecter si j'arrive sur la page d'acceuil ou la page de connection parce que sinon ça va planter ...)
+'''
