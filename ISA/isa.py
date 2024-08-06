@@ -21,23 +21,18 @@ def save_to_local_file(content, file_path):
     content (str): The content to be saved.
     file_path (str): The full path of the file where the content will be saved.
     """
-    # Ensure the directory exists
     os.makedirs(os.path.dirname(file_path), exist_ok=True)
     
-    # Write the content to the file
     with open(file_path, 'w', encoding='utf-8') as file:
         file.write(content)
     print(f'Content successfully saved to {file_path}\n')
 
 def extract_data_from_html(file_path):
-    # Read the HTML file
     with open(file_path, 'r', encoding='utf-8') as file:
         html_content = file.read()
 
-    # Parse the HTML content
     soup = BeautifulSoup(html_content, 'html.parser')
 
-    # Initialize a dictionary to store the extracted data
     extracted_data = {
         'periode': '',
         'room': '',
@@ -45,21 +40,15 @@ def extract_data_from_html(file_path):
         'enseignant': ''
     }
 
-    # Find the div with the id "collapsible11"
     collapsible_div = soup.find('div', id='collapsible11')
 
-    # If the div is found, proceed to extract content
     if collapsible_div:
-        # Find all <span class="text"> elements within the div
         span_elements = collapsible_div.find_all('span', class_='text')
 
-        # Extract and store data in the dictionary
         for span in span_elements:
-            # Find the title element preceding the data elements
             title_tag = span.find_previous('span', class_='tag')
             title_text = title_tag.get_text(strip=True) if title_tag else 'Title Not Found'
 
-            # Find the following <data> tag
             data_tag = span.find_next('data')
             data_value = span.get_text(strip=True) + ' ' + data_tag.get_text(strip=True) if data_tag else span.get_text(strip=True)
 
@@ -111,14 +100,11 @@ try:
     page_source = driver.page_source
     xml_content = page_source
 
-    # Specify the path where you want to save the file
     file_path = "/Users/kevin/Desktop/test.html"
     save_to_local_file(xml_content, file_path)
 
-    # Extract data from the saved HTML file
     extracted_data = extract_data_from_html(file_path)
 
-    # Use the extracted data as needed
     if extracted_data:
         periode = extracted_data.get('periode')
         room = extracted_data.get('room')
@@ -126,7 +112,7 @@ try:
         enseignant = extracted_data.get('enseignant')
 
         print('---------------------------------------------------\n')
-        print(f'Data - Next Course:\n\nPériode: {periode}\nSalle: {room}\nMatière: {matiere}\nEnseignant: {enseignant}\n')
+        print(f'Data - prochain cours:\n\nPériode: {periode}\nSalle: {room}\nMatière: {matiere}\nEnseignant: {enseignant}\n')
         print('---------------------------------------------------\n')
 
 finally:
