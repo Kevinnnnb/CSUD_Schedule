@@ -14,7 +14,9 @@ password = 'UC9z37h8mn'
 # Eventuellement, faire en sorte d'utiliser FireFox pour une plus grande compatibilité
 driver = webdriver.Safari()
 
-print('\nExecuting script. Please wait while we log you in ...\n')
+print('\nExecuting script. Please wait\n')
+time.sleep(2)
+print('Logging into IS-Academia ...\n')
 
 def save_to_local_file(content, file_path):
     """
@@ -28,7 +30,6 @@ def save_to_local_file(content, file_path):
     
     with open(file_path, 'w', encoding='utf-8') as file:
         file.write(content)
-    print(f'Content successfully saved to {file_path}\n')
 
 def extract_data_from_html(file_path):
     with open(file_path, 'r', encoding='utf-8') as file:
