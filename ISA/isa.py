@@ -4,6 +4,7 @@ from selenium.webdriver.common.keys import Keys
 import time
 import xml.etree.ElementTree as ET
 
+#enentually ask the user to input his mail ans password but that will come later
 username = 'kevin.bourquenoud@studentfr.ch'
 password = 'UC9z37h8mn'
 
