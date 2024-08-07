@@ -1,6 +1,8 @@
 from selenium import webdriver
 from selenium.webdriver.common.by import By
 from selenium.webdriver.common.keys import Keys
+from selenium.webdriver.support.ui import WebDriverWait
+from selenium.webdriver.support import expected_conditions as EC
 import time
 import os
 import pickle
@@ -13,10 +15,12 @@ password = 'UC9z37h8mn'
 
 cookies_file = "/Users/kevin/Desktop/cookies.pkl"
 
-erreur = False
+# Variable pour gérer l'état de la connexion
+logged_in_with_cookies = False
 
-# Eventuellement, faire en sorte d'utiliser FireFox pour une plus grande compatibilité
 driver = webdriver.Safari()
+
+erreur = False
 
 print('\nStarting, please wait while we log you into IS-Academia ...\n')
 
@@ -92,27 +96,36 @@ def load_cookies(driver, file_path):
             cookies = pickle.load(file)
             for cookie in cookies:
                 driver.add_cookie(cookie)
+
+        logged_in_with_cookies = True
     else:
         print("No cookies found, we are going to log you in ...\n")
 
 def reconnect_with_cookies(driver, url, cookies_file):
     try:
+        print("Attempting to load page with cookies\n")
         driver.get(url)
         time.sleep(5)
         
         if os.path.exists(cookies_file) and os.path.getsize(cookies_file) > 0:
+            print("Loading cookies from file...\n")
             load_cookies(driver, cookies_file)
             driver.refresh()
             time.sleep(5)
-            # Vérifiez si la reconnexion a été réussie, par exemple en vérifiant la présence d'un élément spécifique
-            if driver.find_elements(By.CLASS_NAME, "specific_element_class_name"):
+            print("Cookies loaded and page refreshed.\n")
+            
+            # Utilisation d'attentes explicites pour vérifier la présence de l'élément après le chargement des cookies
+            try:
+                WebDriverWait(driver, 10).until(
+                    EC.presence_of_element_located((By.CLASS_NAME, "specific_element_class_name"))  # Remplacer par un véritable sélecteur
+                )
                 print("Reconnection successful!\n")
                 return True
-            else:
-                print("Reconnection failed. Please wait ...\n")
+            except:
+                print("Reconnection failed. Element not found.\n")
                 return False
         else:
-            print("Cookies file does not exist or is empty. We are going to log you the 'classic' way ...\n")
+            print("Cookies file does not exist or is empty. We are going to log you in the classic way ...\n")
             return False
     except Exception as e:
         print(f"An error occurred during reconnection: {e}\n")
@@ -121,17 +134,41 @@ def reconnect_with_cookies(driver, url, cookies_file):
 try:
     url = "https://appls.edufr.ch/isaweb/!PORTAL17S.portalCell?ww_k_cell=456253168&zz_b_firstloading=1&ww_n_cellkey=696656199&ww_n_ctrlKey=330989937"
     
-    if not reconnect_with_cookies(driver, url, cookies_file):
+    logged_in_with_cookies = reconnect_with_cookies(driver, url, cookies_file)
+
+    if not logged_in_with_cookies:
+        print("Trying to log in\n")
         driver.get(url)
         time.sleep(5)
-        driver.find_element(By.NAME, "loginfmt").send_keys(username)
-        driver.find_element(By.ID, "idSIButton9").send_keys(Keys.RETURN)
+        
+        print("Entering username\n")
+        username_field = WebDriverWait(driver, 10).until(
+            EC.presence_of_element_located((By.NAME, "loginfmt"))
+        )
+        username_field.send_keys(username)
+        
+        submit_button = WebDriverWait(driver, 10).until(
+            EC.element_to_be_clickable((By.ID, "idSIButton9"))
+        )
+        submit_button.send_keys(Keys.RETURN)
         time.sleep(5)
-        driver.find_element(By.NAME, "passwd").send_keys(password)
-        driver.find_element(By.ID, "idSIButton9").send_keys(Keys.RETURN)
+        
+        print("Entering password\n")
+        password_field = WebDriverWait(driver, 10).until(
+            EC.presence_of_element_located((By.NAME, "passwd"))
+        )
+        password_field.send_keys(password)
+        
+        submit_button = WebDriverWait(driver, 10).until(
+            EC.element_to_be_clickable((By.ID, "idSIButton9"))
+        )
+        submit_button.send_keys(Keys.RETURN)
         time.sleep(5)
 
-        image_element = driver.find_element(By.CLASS_NAME, "tile-img")
+        print("Getting sms verification\n")
+        image_element = WebDriverWait(driver, 10).until(
+            EC.presence_of_element_located((By.CLASS_NAME, "tile-img"))
+        )
         image_element.click()
         time.sleep(5)
         
@@ -139,28 +176,41 @@ try:
         if verification_code is None:
             raise TimeoutError("No input received within the timeout period.")
         
-        driver.find_element(By.ID, "idTxtBx_SAOTCC_OTC").send_keys(verification_code)
-        driver.find_element(By.ID, "idSubmit_SAOTCC_Continue").send_keys(Keys.RETURN)
+        print("\nVerifying verification code ...\n")
+        verification_field = WebDriverWait(driver, 10).until(
+            EC.presence_of_element_located((By.ID, "idTxtBx_SAOTCC_OTC"))
+        )
+        verification_field.send_keys(verification_code)
+        
+        submit_button = WebDriverWait(driver, 10).until(
+            EC.element_to_be_clickable((By.ID, "idSubmit_SAOTCC_Continue"))
+        )
+        submit_button.send_keys(Keys.RETURN)
         time.sleep(5)
-        driver.find_element(By.ID, "idSIButton9").send_keys(Keys.RETURN)
+        
+        final_submit_button = WebDriverWait(driver, 10).until(
+            EC.element_to_be_clickable((By.ID, "idSIButton9"))
+        )
+        final_submit_button.send_keys(Keys.RETURN)
         time.sleep(5)
 
         print('\n\n                 ACCESS GRANTED !\n\n')
-                    
-
         save_cookies(driver, cookies_file)
 
     driver.switch_to.window(driver.window_handles[-1])
     new_tab_url = "https://appls.edufr.ch/isaweb/!PORTAL17S.portalCell?ww_k_cell=456253168&zz_b_firstloading=1&ww_n_cellkey=696656199&ww_n_ctrlKey=330989937"
+    print("Opening new tab\n")
     driver.get(new_tab_url)
     time.sleep(5)
 
+    print("Saving page source\n")
     page_source = driver.page_source
     xml_content = page_source
 
     file_path = "/Users/kevin/Desktop/test.html"
     save_to_local_file(xml_content, file_path)
 
+    print("Extracting data from HTML\n")
     extracted_data = extract_data_from_html(file_path)
 
     if extracted_data:
@@ -175,21 +225,19 @@ try:
         print('---------------------------------------------------\n')
 
 except TimeoutError as te:
-    print('\n\n---------------------------------------------------')
+    print('---------------------------------------------------')
     print(f'\nSorry, something bad happened. Please check your Login informations and try again ...\n')
     erreur = True
 
 except Exception as e:
-    print('\n\n---------------------------------------------------')
+    print('---------------------------------------------------')
     print(f'\nSorry, something bad happened. Please try again later ...\n')
     print(f'Error: {e}\n')
 
 finally:
     driver.quit()
     if 'xml_content' in locals() and xml_content is not None:
-
         print('################ End of the Script ################\n')
-
     else:
-        if erreur is not True:
+        if not erreur:
             print('Something bad happened ...\n')
