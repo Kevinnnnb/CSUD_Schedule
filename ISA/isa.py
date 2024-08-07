@@ -99,24 +99,25 @@ def load_cookies(driver, file_path):
 
         logged_in_with_cookies = True
     else:
-        print("No cookies found, we are going to log you in ...\n")
+        #print("No cookies found, we are going to log you in ...\n")
+        pass
 
 def reconnect_with_cookies(driver, url, cookies_file):
     try:
-        print("Attempting to load page with cookies\n")
+        #print("Attempting to load page with cookies\n")
         driver.get(url)
         time.sleep(5)
         
         if os.path.exists(cookies_file) and os.path.getsize(cookies_file) > 0:
-            print("Loading cookies from file...\n")
+            #print("Loading cookies from file...\n")
             load_cookies(driver, cookies_file)
             driver.refresh()
             time.sleep(5)
-            print("Cookies loaded and page refreshed.\n")
+            #print("Cookies loaded and page refreshed.\n")
             return True
         
         else:
-            print("Cookies file does not exist or is empty. We are going to log you in the classic way ...\n")
+            #print("Cookies file does not exist or is empty. We are going to log you in the classic way ...\n")
             return False
     except Exception as e:
         print(f"An error occurred during reconnection: {e}\n")
@@ -128,11 +129,11 @@ try:
     logged_in_with_cookies = reconnect_with_cookies(driver, url, cookies_file)
 
     if  logged_in_with_cookies == False :
-        print("Trying to log in\n")
+        print("Trying to log you in\n")
         driver.get(url)
         time.sleep(5)
         
-        print("Entering username\n")
+        #print("Entering username\n")
         username_field = WebDriverWait(driver, 10).until(
             EC.presence_of_element_located((By.NAME, "loginfmt"))
         )
@@ -144,7 +145,7 @@ try:
         submit_button.send_keys(Keys.RETURN)
         time.sleep(5)
         
-        print("Entering password\n")
+        #print("Entering password\n")
         password_field = WebDriverWait(driver, 10).until(
             EC.presence_of_element_located((By.NAME, "passwd"))
         )
@@ -156,7 +157,7 @@ try:
         submit_button.send_keys(Keys.RETURN)
         time.sleep(5)
 
-        print("Getting sms verification\n")
+        #print("Getting sms verification\n")
         image_element = WebDriverWait(driver, 10).until(
             EC.presence_of_element_located((By.CLASS_NAME, "tile-img"))
         )
@@ -167,7 +168,7 @@ try:
         if verification_code is None:
             raise TimeoutError("No input received within the timeout period.")
         
-        print("\nVerifying verification code ...\n")
+        #print("\nVerifying verification code ...\n")
         verification_field = WebDriverWait(driver, 10).until(
             EC.presence_of_element_located((By.ID, "idTxtBx_SAOTCC_OTC"))
         )
@@ -184,30 +185,31 @@ try:
         )
         final_submit_button.send_keys(Keys.RETURN)
         time.sleep(5)
-
-        print('\n\n                 ACCESS GRANTED !\n\n')
         save_cookies(driver, cookies_file)
-    else:
-        print('Connecting with cookies\n')
-        
 
+    else:
+        #print('Connecting with cookies\n')
+        pass
+        
+    
     driver.switch_to.window(driver.window_handles[-1])
     new_tab_url = "https://appls.edufr.ch/isaweb/!PORTAL17S.portalCell?ww_k_cell=456253168&zz_b_firstloading=1&ww_n_cellkey=696656199&ww_n_ctrlKey=330989937"
-    print("Opening new tab\n")
+    #print("Opening new tab\n")
     driver.get(new_tab_url)
     time.sleep(5)
 
-    print("Saving page source\n")
+    #print("Saving page source\n")
     page_source = driver.page_source
     xml_content = page_source
 
     file_path = "/Users/kevin/Desktop/test.html"
     save_to_local_file(xml_content, file_path)
 
-    print("Extracting data from HTML\n")
+    #print("Extracting data from HTML\n")
     extracted_data = extract_data_from_html(file_path)
 
     if extracted_data:
+        print('\n\n                 ACCESS GRANTED !\n\n')
         date = extracted_data.get('date')
         periode = extracted_data.get('periode')
         room = extracted_data.get('room')
@@ -231,7 +233,7 @@ except Exception as e:
 finally:
     driver.quit()
     if 'xml_content' in locals() and xml_content is not None:
-        print('################ End of the Script ################\n')
+        print('\n################ End of the Script ################\n\n')
     else:
         if not erreur:
             print('Something bad happened ...\n')
