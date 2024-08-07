@@ -11,12 +11,12 @@ import threading
 username = 'kevin.bourquenoud@studentfr.ch'
 password = 'UC9z37h8mn'
 
-# Eventuellement, faire en sorte d'utiliser FireFox pour une plus grande compatibilité
-driver = webdriver.Safari()
-
 cookies_file = "/Users/kevin/Desktop/cookies.pkl"
 
 erreur = False
+
+# Eventuellement, faire en sorte d'utiliser FireFox pour une plus grande compatibilité
+driver = webdriver.Safari()
 
 print('\nStarting, please wait while we log you into IS-Academia ...\n')
 
@@ -93,34 +93,33 @@ def load_cookies(driver, file_path):
             for cookie in cookies:
                 driver.add_cookie(cookie)
     else:
-        print("Cookies file is empty or does not exist. We are going to log you the classic way ...\n")
+        print("No cookies found, we are going to log you in ...\n")
 
 def reconnect_with_cookies(driver, url, cookies_file):
     try:
         driver.get(url)
         time.sleep(5)
         
-        # Charger les cookies s'ils existent
         if os.path.exists(cookies_file) and os.path.getsize(cookies_file) > 0:
             load_cookies(driver, cookies_file)
             driver.refresh()
             time.sleep(5)
             # Vérifiez si la reconnexion a été réussie, par exemple en vérifiant la présence d'un élément spécifique
-            if "expected_element" in driver.page_source:
+            if driver.find_elements(By.CLASS_NAME, "specific_element_class_name"):
                 print("Reconnection successful!\n")
                 return True
             else:
-                print("Reconnection failed. Element not found.\n")
+                print("Reconnection failed. Please wait ...\n")
                 return False
         else:
-            print("Cookies file does not exist or is empty.\n")
+            print("Cookies file does not exist or is empty. We are going to log you the 'classic' way ...\n")
             return False
     except Exception as e:
         print(f"An error occurred during reconnection: {e}\n")
         return False
 
 try:
-    url = "https://isa.fr.ch"
+    url = "https://appls.edufr.ch/isaweb/!PORTAL17S.portalCell?ww_k_cell=456253168&zz_b_firstloading=1&ww_n_cellkey=696656199&ww_n_ctrlKey=330989937"
     
     if not reconnect_with_cookies(driver, url, cookies_file):
         driver.get(url)
@@ -146,9 +145,9 @@ try:
         driver.find_element(By.ID, "idSIButton9").send_keys(Keys.RETURN)
         time.sleep(5)
 
-        print('\nACCESS GRANTED !\n')
+        print('\n\n                 ACCESS GRANTED !\n\n')
+                    
 
-        # Sauvegarder les cookies après la connexion
         save_cookies(driver, cookies_file)
 
     driver.switch_to.window(driver.window_handles[-1])
@@ -171,8 +170,8 @@ try:
         matiere = extracted_data.get('matiere')
         enseignant = extracted_data.get('enseignant')
 
-        print('---------------------------------------------------\n')
-        print(f'Data - prochain cours:\n\nDate: {date}\nPériode: {periode}\nSalle: {room}\nMatière: {matiere}\nEnseignant: {enseignant}\n')
+        print('-------------- Data - prochain cours --------------\n')
+        print(f'Date: {date}\nPériode: {periode}\nSalle: {room}\nMatière: {matiere}\nEnseignant: {enseignant}\n')
         print('---------------------------------------------------\n')
 
 except TimeoutError as te:
@@ -189,23 +188,7 @@ finally:
     driver.quit()
     if 'xml_content' in locals() and xml_content is not None:
 
-        ####################################fonction de test pour voir si les cookies ça joue###########################################
-
-        print('Trying to reconnect using cookies...\n')
-
-        driver = webdriver.Safari()
-        reconnection_successful = reconnect_with_cookies(driver, url, cookies_file)
-
-        if reconnection_successful:
-            print("Reconnected successfully using cookies.\n")
-        else:
-            print("Failed to reconnect using cookies.\n")
-            
-        driver.quit()
-
-        #################################################################################################################################
-
-        print('Script end Successfully !\n')
+        print('################ End of the Script ################\n')
 
     else:
         if erreur is not True:
