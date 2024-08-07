@@ -9,13 +9,12 @@ import pickle
 from bs4 import BeautifulSoup
 import threading
 
-print('\nStarting, please wait while we log you into IS-Academia ...\n')
+print('\nStarting script, please wait ...\n')
 
 time.sleep(2)
 
-# Eventuellement, demander à l'utilisateur de saisir son mail et mot de passe
 username = 'kevin.bourquenoud@studentfr.ch'
-password = input('Veuillez entrer votre mot de passe : ')
+password = input('Enter password : ')
 
 cookies_file = "/Users/kevin/Desktop/cookies.pkl"
 
@@ -70,7 +69,7 @@ def extract_data_from_html(file_path):
 
         return extracted_data
     else:
-        print("No div with id 'collapsible11' found\n")
+        print("\nNo div with id 'collapsible11' found\n")
         return None
 
 def input_with_timeout(prompt, timeout):
@@ -131,7 +130,7 @@ try:
     logged_in_with_cookies = reconnect_with_cookies(driver, url, cookies_file)
 
     if  logged_in_with_cookies == False :
-        print("Trying to log you in\n")
+        #print("Trying to log you in\n")
         driver.get(url)
         time.sleep(5)
         
