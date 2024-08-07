@@ -9,9 +9,13 @@ import pickle
 from bs4 import BeautifulSoup
 import threading
 
+print('\nStarting, please wait while we log you into IS-Academia ...\n')
+
+time.sleep(2)
+
 # Eventuellement, demander à l'utilisateur de saisir son mail et mot de passe
 username = 'kevin.bourquenoud@studentfr.ch'
-password = 'UC9z37h8mn'
+password = input('Veuillez entrer votre mot de passe : ')
 
 cookies_file = "/Users/kevin/Desktop/cookies.pkl"
 
@@ -21,8 +25,6 @@ logged_in_with_cookies = False
 driver = webdriver.Safari()
 
 erreur = False
-
-print('\nStarting, please wait while we log you into IS-Academia ...\n')
 
 def save_to_local_file(content, file_path):
     os.makedirs(os.path.dirname(file_path), exist_ok=True)
