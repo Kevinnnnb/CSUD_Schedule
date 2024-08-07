@@ -68,7 +68,7 @@ def extract_data_from_html(file_path):
 
         return extracted_data
     else:
-        print("No div with id 'collapsible11' found.")
+        print("No div with id 'collapsible11' found\n")
         return None
 
 def input_with_timeout(prompt, timeout):
@@ -113,17 +113,8 @@ def reconnect_with_cookies(driver, url, cookies_file):
             driver.refresh()
             time.sleep(5)
             print("Cookies loaded and page refreshed.\n")
-            
-            # Utilisation d'attentes explicites pour vérifier la présence de l'élément après le chargement des cookies
-            try:
-                WebDriverWait(driver, 10).until(
-                    EC.presence_of_element_located((By.CLASS_NAME, "specific_element_class_name"))  # Remplacer par un véritable sélecteur
-                )
-                print("Reconnection successful!\n")
-                return True
-            except:
-                print("Reconnection failed. Element not found.\n")
-                return False
+            return True
+        
         else:
             print("Cookies file does not exist or is empty. We are going to log you in the classic way ...\n")
             return False
@@ -136,7 +127,7 @@ try:
     
     logged_in_with_cookies = reconnect_with_cookies(driver, url, cookies_file)
 
-    if not logged_in_with_cookies:
+    if  logged_in_with_cookies == False :
         print("Trying to log in\n")
         driver.get(url)
         time.sleep(5)
@@ -196,6 +187,9 @@ try:
 
         print('\n\n                 ACCESS GRANTED !\n\n')
         save_cookies(driver, cookies_file)
+    else:
+        print('Connecting with cookies\n')
+        
 
     driver.switch_to.window(driver.window_handles[-1])
     new_tab_url = "https://appls.edufr.ch/isaweb/!PORTAL17S.portalCell?ww_k_cell=456253168&zz_b_firstloading=1&ww_n_cellkey=696656199&ww_n_ctrlKey=330989937"
