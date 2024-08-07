@@ -3,9 +3,9 @@ from selenium.webdriver.common.by import By
 from selenium.webdriver.common.keys import Keys
 import time
 import os
+import pickle
 from bs4 import BeautifulSoup
 import threading
-import sys
 
 # Eventuellement, demander à l'utilisateur de saisir son mail et mot de passe
 username = 'kevin.bourquenoud@studentfr.ch'
@@ -14,21 +14,14 @@ password = 'UC9z37h8mn'
 # Eventuellement, faire en sorte d'utiliser FireFox pour une plus grande compatibilité
 driver = webdriver.Safari()
 
-print('\nExecuting script. Please wait\n')
-time.sleep(2)
-print('Logging into IS-Academia ...\n')
-print('!!! AJOUTER LE TRUC POUR GERRER LES COOKIES MAIS DU COUP FAUT AUSSI AJOUTER LA POSSIBILITE DE GERRER LA CONNEXION EN FONCTION DES COOKIES SINON CA VEUT PAS JOEUR !!!\n')
+cookies_file = "/Users/kevin/Desktop/cookies.pkl"
+
+erreur = False
+
+print('\nStarting, please wait while we log you into IS-Academia ...\n')
 
 def save_to_local_file(content, file_path):
-    """
-    Save the content to a local file at the specified file path.
-    
-    Parameters:
-    content (str): The content to be saved.
-    file_path (str): The full path of the file where the content will be saved.
-    """
     os.makedirs(os.path.dirname(file_path), exist_ok=True)
-    
     with open(file_path, 'w', encoding='utf-8') as file:
         file.write(content)
 
@@ -75,16 +68,6 @@ def extract_data_from_html(file_path):
         return None
 
 def input_with_timeout(prompt, timeout):
-    """
-    Prompt user input with a timeout.
-    
-    Parameters:
-    prompt (str): The prompt message to display.
-    timeout (int): The time in seconds to wait for input.
-    
-    Returns:
-    str: The user input if provided within the timeout period, otherwise None.
-    """
     def ask_input():
         nonlocal user_input
         user_input = input(prompt)
@@ -98,38 +81,80 @@ def input_with_timeout(prompt, timeout):
         return None
     return user_input
 
+def save_cookies(driver, file_path):
+    os.makedirs(os.path.dirname(file_path), exist_ok=True)
+    with open(file_path, 'wb') as file:
+        pickle.dump(driver.get_cookies(), file)
+
+def load_cookies(driver, file_path):
+    if os.path.exists(file_path) and os.path.getsize(file_path) > 0:
+        with open(file_path, 'rb') as file:
+            cookies = pickle.load(file)
+            for cookie in cookies:
+                driver.add_cookie(cookie)
+    else:
+        print("Cookies file is empty or does not exist. We are going to log you the classic way ...\n")
+
+def reconnect_with_cookies(driver, url, cookies_file):
+    try:
+        driver.get(url)
+        time.sleep(5)
+        
+        # Charger les cookies s'ils existent
+        if os.path.exists(cookies_file) and os.path.getsize(cookies_file) > 0:
+            load_cookies(driver, cookies_file)
+            driver.refresh()
+            time.sleep(5)
+            # Vérifiez si la reconnexion a été réussie, par exemple en vérifiant la présence d'un élément spécifique
+            if "expected_element" in driver.page_source:
+                print("Reconnection successful!\n")
+                return True
+            else:
+                print("Reconnection failed. Element not found.\n")
+                return False
+        else:
+            print("Cookies file does not exist or is empty.\n")
+            return False
+    except Exception as e:
+        print(f"An error occurred during reconnection: {e}\n")
+        return False
+
 try:
     url = "https://isa.fr.ch"
-    driver.get(url)
-    time.sleep(5) 
     
-    driver.find_element(By.NAME, "loginfmt").send_keys(username) 
-    driver.find_element(By.ID, "idSIButton9").send_keys(Keys.RETURN)
-    time.sleep(5)
-    driver.find_element(By.NAME, "passwd").send_keys(password)
-    driver.find_element(By.ID, "idSIButton9").send_keys(Keys.RETURN)
-    time.sleep(5)
+    if not reconnect_with_cookies(driver, url, cookies_file):
+        driver.get(url)
+        time.sleep(5)
+        driver.find_element(By.NAME, "loginfmt").send_keys(username)
+        driver.find_element(By.ID, "idSIButton9").send_keys(Keys.RETURN)
+        time.sleep(5)
+        driver.find_element(By.NAME, "passwd").send_keys(password)
+        driver.find_element(By.ID, "idSIButton9").send_keys(Keys.RETURN)
+        time.sleep(5)
 
-    image_element = driver.find_element(By.CLASS_NAME, "tile-img")
-    image_element.click()
-    time.sleep(5)
-    
-    verification_code = input_with_timeout("Enter the SMS verification code you received: ", 45)
-    if verification_code is None:
-        raise TimeoutError("No input received within the timeout period.")
-    
-    driver.find_element(By.ID, "idTxtBx_SAOTCC_OTC").send_keys(verification_code) 
-    driver.find_element(By.ID, "idSubmit_SAOTCC_Continue").send_keys(Keys.RETURN)
-    time.sleep(5) 
-    driver.find_element(By.ID, "idSIButton9").send_keys(Keys.RETURN)
-    time.sleep(5)
+        image_element = driver.find_element(By.CLASS_NAME, "tile-img")
+        image_element.click()
+        time.sleep(5)
+        
+        verification_code = input_with_timeout("Enter the SMS verification code you received: ", 45)
+        if verification_code is None:
+            raise TimeoutError("No input received within the timeout period.")
+        
+        driver.find_element(By.ID, "idTxtBx_SAOTCC_OTC").send_keys(verification_code)
+        driver.find_element(By.ID, "idSubmit_SAOTCC_Continue").send_keys(Keys.RETURN)
+        time.sleep(5)
+        driver.find_element(By.ID, "idSIButton9").send_keys(Keys.RETURN)
+        time.sleep(5)
 
-    print('\nACCESS GRANTED !\n')
+        print('\nACCESS GRANTED !\n')
+
+        # Sauvegarder les cookies après la connexion
+        save_cookies(driver, cookies_file)
 
     driver.switch_to.window(driver.window_handles[-1])
     new_tab_url = "https://appls.edufr.ch/isaweb/!PORTAL17S.portalCell?ww_k_cell=456253168&zz_b_firstloading=1&ww_n_cellkey=696656199&ww_n_ctrlKey=330989937"
     driver.get(new_tab_url)
-    time.sleep(5) 
+    time.sleep(5)
 
     page_source = driver.page_source
     xml_content = page_source
@@ -154,18 +179,34 @@ except TimeoutError as te:
     print('\n\n---------------------------------------------------')
     print(f'\nSorry, something bad happened. Please check your Login informations and try again ...\n')
     erreur = True
-    
 
 except Exception as e:
     print('\n\n---------------------------------------------------')
     print(f'\nSorry, something bad happened. Please try again later ...\n')
-    
-    
+    print(f'Error: {e}\n')
 
 finally:
     driver.quit()
     if 'xml_content' in locals() and xml_content is not None:
-        print('Done Successfully !\n')
+
+        ####################################fonction de test pour voir si les cookies ça joue###########################################
+
+        print('Trying to reconnect using cookies...\n')
+
+        driver = webdriver.Safari()
+        reconnection_successful = reconnect_with_cookies(driver, url, cookies_file)
+
+        if reconnection_successful:
+            print("Reconnected successfully using cookies.\n")
+        else:
+            print("Failed to reconnect using cookies.\n")
+            
+        driver.quit()
+
+        #################################################################################################################################
+
+        print('Script end Successfully !\n')
+
     else:
         if erreur is not True:
             print('Something bad happened ...\n')
