@@ -13,8 +13,8 @@ print('\nStarting script, please wait ...\n')
 
 time.sleep(2)
 
-username = 'kevin.bourquenoud@studentfr.ch'
-password = input('Enter password : ')
+username = 'kevin.bourquenoud@studentfr.ch' # or input('Enter Email : ')
+password = 'UC9z37h8mn' # or input('Enter password : ')
 
 cookies_file = "/Users/kevin/Desktop/cookies.pkl"
 
