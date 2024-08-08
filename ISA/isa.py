@@ -241,6 +241,10 @@ while True:
 
     #Faire en sorte d'appuyer sur le bouton "Attendre un nouvel accès" toutes les 10 minutes ou alors touver le lien de la requette mais bon ... 
 
+    #dans la console dev il quand on clique sur le bouton "Attendre un nouvel accès" il y a cette requette /PORTAL17S.htm dans la balise href donc en soit c'est assez simple
+
+    #faudrait peut être juste changer le timeout pour la recherche de l'élément ---- Demander à ChatGPT
+
 
     try:
         element = driver.find_element_by_link_text("Attendre un nouvel accès")
